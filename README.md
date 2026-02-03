@@ -2,9 +2,9 @@
 
 # HCP Vault Azure Secret Engine
 
-This Terraform module provisions and manages the Vault Azure secrets engine, supporting secure dynamic credential generation, automated
-root credential rotation, and least-privilege access for Azure resources. The module integrates with Azure using a Service Principal
-(SPN) and Vault AppRole authentication, following best practices for secret management and automation.
+This Terraform module provisions and manages the Vault Azure secrets engine with automated root credential rotation, supporting secure
+dynamic credential generation and static credential rotation. The module integrates with Azure using a Service Principal (SPN),
+following best practices for secret management and automation.
 
 ## Permissions
 
@@ -20,6 +20,10 @@ root credential rotation, and least-privilege access for Azure resources. The mo
 
 Authentication to Vault can be configured using one of the following methods:
 
+### Static Token Authentication
+
+Use environment variables to authenticate with a static Vault token:
+
 - **VAULT\_TOKEN**: Set the `VAULT_TOKEN` environment variable with a valid Vault token
 - **VAULT\_ADDR**: Set the `VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
 - **VAULT\_NAMESPACE**: Set to `admin` to provision resources in the admin namespace
@@ -32,14 +36,90 @@ export VAULT_TOKEN="your-vault-token"
 export VAULT_NAMESPACE="admin"
 ```
 
+### HCP Terraform Dynamic Credentials (Recommended)
+
+For enhanced security, use HCP Terraform's dynamic provider credentials feature to authenticate to Vault without storing static tokens.
+This method uses workload identity (JWT/OIDC) to generate short-lived Vault tokens automatically.
+
+**Benefits:**
+
+- No static credentials stored in Terraform Cloud/Enterprise
+- Automatic token rotation with short TTL
+- Improved security posture with just-in-time authentication
+- Centralized audit trail in both HCP Terraform and Vault
+
+Use environment variables to authenticate with a static Vault token:
+
+- **TFC\_VAULT\_PROVIDER\_AUTH**: Set the `TFC_VAULT_PROVIDER_AUTH` environment variable to `true`.
+- **TFC\_VAULT\_ADDR**: Set the `TFC_VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
+- **TFC\_VAULT\_NAMESPACE**: Set the `TFC_VAULT_NAMESPACE` environment variable to your Vault namespace (e.g., `admin`)
+- **TFC\_VAULT\_RUN\_ROLE**: Set the `TFC_VAULT_RUN_ROLE` environment variable to the JWT role name configured in Vault (e.g., `hcp-terraform`)
+
+**Documentation:**
+
+- [HCP Terraform Dynamic Credentials](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/dynamic-provider-credentials)
+- [Vault JWT Auth Method](https://developer.hashicorp.com/vault/docs/auth/jwt)
+
 ## Features
 
-- Enables Vault Azure secrets engine for dynamic credential management
+- Enables Vault Azure secrets engine for credential management
 - All backend, role, and policy attributes are configurable via variables for maximum flexibility
 - Securely stores Azure credentials using sensitive Terraform variables
 - Automates root credential rotation on a schedule (default: every 24 hours, configurable)
+- Supports both dynamic and static credential roles for different use cases
+- Provides optional demo resources with AppRole authentication for testing and demonstration
+- Includes ready-to-use demo script showing complete credential lifecycle
 - Supports custom roles and policies for fine-grained access control
-- Provides Vault AppRole authentication for scripts and automation
+
+## How to Read Azure Secrets
+
+To read Azure secrets from Vault, first set the required environment variables:
+
+```bash
+export VAULT_ADDR=""
+export VAULT_NAMESPACE=""
+export VAULT_TOKEN=""
+```
+
+Then, use the following Vault CLI command to retrieve dynamic Azure credentials:
+
+```bash
+vault read azure/creds/<role_name>
+```
+
+Replace `<role_name>` with the name of the Azure role you have configured (e.g., `hcpvault-demo-existingobjectid`).
+
+Example:
+
+```bash
+vault read azure/creds/hcpvault-demo-existingobjectid
+```
+
+This command will return a set of dynamic Azure credentials with the following information:
+
+- `client_id` - Azure Service Principal client ID
+- `client_secret` - Azure Service Principal client secret
+- `lease_duration` - Credential validity period (default: 5 minutes)
+- `lease_renewable` - Whether the lease can be renewed
+
+**Note**: The credentials are temporary and will expire after the lease duration. Request new credentials by running the command again.
+
+## Demo Script
+
+This module includes optional demo scripts that showcase the complete Azure credential lifecycle. When `enable_demo_resources` is set to
+`true` (default), the module provisions:
+
+- AppRole authentication backend for machine-to-machine authentication
+- Dedicated AppRole roles with least-privilege policies
+- Two automated demo scripts demonstrating:
+  - AppRole authentication to Vault
+  - Credential retrieval from Azure secrets engine
+  - Azure CLI authentication using temporary credentials
+  - Display of Azure account information
+  - Automatic credential lifecycle management
+
+See the [RUN\_DEMO.md](./docs/RUN\_DEMO.md) file for detailed instructions on running the demonstration.
+
 - Follows best practices for secret management and security
 
 ## Prerequisites
@@ -79,45 +159,71 @@ No modules.
 
 ## Required Inputs
 
-The following input variables are required:
-
-### <a name="input_azure_client_id"></a> [azure\_client\_id](#input\_azure\_client\_id)
-
-Description: (Required) Azure Client ID for Vault Azure secrets engine.
-
-Type: `string`
-
-### <a name="input_azure_client_secret"></a> [azure\_client\_secret](#input\_azure\_client\_secret)
-
-Description: (Required) Azure Client Secret for Vault Azure secrets engine.
-
-Type: `string`
-
-### <a name="input_azure_spn_object_id"></a> [azure\_spn\_object\_id](#input\_azure\_spn\_object\_id)
-
-Description: (Required) Azure AD Application Object ID for the SPN role.
-
-Type: `string`
-
-### <a name="input_azure_subscription_id"></a> [azure\_subscription\_id](#input\_azure\_subscription\_id)
-
-Description: (Required) Azure Subscription ID for Vault Azure secrets engine.
-
-Type: `string`
-
-### <a name="input_azure_tenant_id"></a> [azure\_tenant\_id](#input\_azure\_tenant\_id)
-
-Description: (Required) Azure Tenant ID for Vault Azure secrets engine.
-
-Type: `string`
+No required inputs.
 
 ## Optional Inputs
 
 The following input variables are optional (have default values):
 
+### <a name="input_approle_backend_path"></a> [approle\_backend\_path](#input\_approle\_backend\_path)
+
+Description: (Optional) Path where AppRole auth backend is mounted in Vault.
+
+Type: `string`
+
+Default: `"approle"`
+
+### <a name="input_azure_client_id"></a> [azure\_client\_id](#input\_azure\_client\_id)
+
+Description: (Optional) Azure Client ID for Vault Azure secrets engine. If provided, `azure_client_secret`, `azure_subscription_id`, and `azure_tenant_id` must also be provided.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_azure_client_secret"></a> [azure\_client\_secret](#input\_azure\_client\_secret)
+
+Description: (Optional if azure\_client\_id is provided) Azure Client Secret for Vault Azure secrets engine.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_azure_dynamic_spn_max_ttl"></a> [azure\_dynamic\_spn\_max\_ttl](#input\_azure\_dynamic\_spn\_max\_ttl)
+
+Description: (Optional) Max TTL for the SPN role for dynamic credentials. Default is 600 seconds.
+
+Type: `number`
+
+Default: `600`
+
+### <a name="input_azure_dynamic_spn_object_id"></a> [azure\_dynamic\_spn\_object\_id](#input\_azure\_dynamic\_spn\_object\_id)
+
+Description: (Optional) Azure AD Application Object ID for the SPN role with dynamic credentials.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_azure_dynamic_spn_role_name"></a> [azure\_dynamic\_spn\_role\_name](#input\_azure\_dynamic\_spn\_role\_name)
+
+Description: (Optional) Name of the Azure SPN role for Vault for dynamic credentials.
+
+Type: `string`
+
+Default: `"HCPVault-Demo-Dynamic"`
+
+### <a name="input_azure_dynamic_spn_ttl"></a> [azure\_dynamic\_spn\_ttl](#input\_azure\_dynamic\_spn\_ttl)
+
+Description: (Optional) TTL for the SPN role for dynamic credentials. Default is 300 seconds.
+
+Type: `number`
+
+Default: `300`
+
 ### <a name="input_azure_identity_token_ttl"></a> [azure\_identity\_token\_ttl](#input\_azure\_identity\_token\_ttl)
 
-Description: (Optional) TTL for identity tokens issued by the backend (in seconds).
+Description: (Optional) TTL for identity tokens issued by the backend (in seconds). Default is 3600 seconds.
 
 Type: `number`
 
@@ -125,7 +231,7 @@ Default: `3600`
 
 ### <a name="input_azure_rotation_schedule"></a> [azure\_rotation\_schedule](#input\_azure\_rotation\_schedule)
 
-Description: (Optional) Cron schedule for root credential rotation.
+Description: (Optional) Cron schedule for root credential rotation. Default is "0 */24 * * *".
 
 Type: `string`
 
@@ -133,7 +239,7 @@ Default: `"0 */24 * * *"`
 
 ### <a name="input_azure_rotation_window"></a> [azure\_rotation\_window](#input\_azure\_rotation\_window)
 
-Description: (Optional) Window for root credential rotation (in seconds).
+Description: (Optional) Window for root credential rotation (in seconds). Default is 3600 seconds.
 
 Type: `number`
 
@@ -147,101 +253,150 @@ Type: `string`
 
 Default: `"azure"`
 
-### <a name="input_azure_spn_max_ttl"></a> [azure\_spn\_max\_ttl](#input\_azure\_spn\_max\_ttl)
+### <a name="input_azure_static_spn_object_id"></a> [azure\_static\_spn\_object\_id](#input\_azure\_static\_spn\_object\_id)
 
-Description: (Optional) Max TTL for the SPN role credentials.
+Description: (Optional) Azure AD Application Object ID for the SPN role with static credentials.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_azure_static_spn_role_name"></a> [azure\_static\_spn\_role\_name](#input\_azure\_static\_spn\_role\_name)
+
+Description: (Optional) Name of the Azure SPN role for Vault for static credentials.
+
+Type: `string`
+
+Default: `"HCPVault-Demo-Static"`
+
+### <a name="input_azure_static_spn_ttl"></a> [azure\_static\_spn\_ttl](#input\_azure\_static\_spn\_ttl)
+
+Description: (Optional) TTL for the SPN role for static credentials. Default is 1 year (31536000 seconds).
 
 Type: `number`
 
-Default: `600`
+Default: `31536000`
 
-### <a name="input_azure_spn_reader_policy_name"></a> [azure\_spn\_reader\_policy\_name](#input\_azure\_spn\_reader\_policy\_name)
+### <a name="input_azure_subscription_id"></a> [azure\_subscription\_id](#input\_azure\_subscription\_id)
 
-Description: (Optional) Name of the Vault policy for SPN secret read access.
-
-Type: `string`
-
-Default: `"azure-spn-reader-policy"`
-
-### <a name="input_azure_spn_role_name"></a> [azure\_spn\_role\_name](#input\_azure\_spn\_role\_name)
-
-Description: (Optional) Name of the Azure SPN role for Vault.
+Description: (Optional if azure\_client\_id is provided) Azure Subscription ID for Vault Azure secrets engine.
 
 Type: `string`
 
-Default: `"HCPVault-Demo-ExistingObjectID"`
+Default: `""`
 
-### <a name="input_azure_spn_ttl"></a> [azure\_spn\_ttl](#input\_azure\_spn\_ttl)
+### <a name="input_azure_tenant_id"></a> [azure\_tenant\_id](#input\_azure\_tenant\_id)
 
-Description: (Optional) TTL for the SPN role credentials.
+Description: (Optional if azure\_client\_id is provided) Azure Tenant ID for Vault Azure secrets engine.
+
+Type: `string`
+
+Default: `""`
+
+### <a name="input_demo_script_dynamic_approle_name"></a> [demo\_script\_dynamic\_approle\_name](#input\_demo\_script\_dynamic\_approle\_name)
+
+Description: (Optional) Name of the AppRole for the dynamic credentials demo script.
+
+Type: `string`
+
+Default: `"azure-demo-script-dynamic"`
+
+### <a name="input_demo_script_dynamic_policy_name"></a> [demo\_script\_dynamic\_policy\_name](#input\_demo\_script\_dynamic\_policy\_name)
+
+Description: (Optional) Name of the policy for the dynamic credentials demo script.
+
+Type: `string`
+
+Default: `"azure-demo-script-dynamic-policy"`
+
+### <a name="input_demo_script_secret_id_ttl"></a> [demo\_script\_secret\_id\_ttl](#input\_demo\_script\_secret\_id\_ttl)
+
+Description: (Optional) TTL for AppRole Secret ID in seconds. Default is 0 (no expiration).
 
 Type: `number`
 
-Default: `300`
+Default: `0`
 
-### <a name="input_vault_approle_auth_backend_path"></a> [vault\_approle\_auth\_backend\_path](#input\_vault\_approle\_auth\_backend\_path)
+### <a name="input_demo_script_static_approle_name"></a> [demo\_script\_static\_approle\_name](#input\_demo\_script\_static\_approle\_name)
 
-Description: (Optional) Path to enable the Vault AppRole auth backend.
-
-Type: `string`
-
-Default: `"approle"`
-
-### <a name="input_vault_approle_role_name"></a> [vault\_approle\_role\_name](#input\_vault\_approle\_role\_name)
-
-Description: (Optional) Name of the Vault AppRole role.
+Description: (Optional) Name of the AppRole for the static credentials demo script.
 
 Type: `string`
 
-Default: `"azure-reader"`
+Default: `"azure-demo-script-static"`
 
-### <a name="input_vault_approle_token_max_ttl"></a> [vault\_approle\_token\_max\_ttl](#input\_vault\_approle\_token\_max\_ttl)
+### <a name="input_demo_script_static_policy_name"></a> [demo\_script\_static\_policy\_name](#input\_demo\_script\_static\_policy\_name)
 
-Description: (Optional) Max TTL for the AppRole token (in seconds).
+Description: (Optional) Name of the policy for the static credentials demo script.
 
-Type: `number`
+Type: `string`
 
-Default: `7200`
+Default: `"azure-demo-script-static-policy"`
 
-### <a name="input_vault_approle_token_policies"></a> [vault\_approle\_token\_policies](#input\_vault\_approle\_token\_policies)
+### <a name="input_demo_script_token_max_ttl"></a> [demo\_script\_token\_max\_ttl](#input\_demo\_script\_token\_max\_ttl)
 
-Description: (Optional) List of policies to attach to the AppRole token.
-
-Type: `list(string)`
-
-Default:
-
-```json
-[
-  "default"
-]
-```
-
-### <a name="input_vault_approle_token_ttl"></a> [vault\_approle\_token\_ttl](#input\_vault\_approle\_token\_ttl)
-
-Description: (Optional) TTL for the AppRole token (in seconds).
+Description: (Optional) Maximum TTL for tokens issued to the demo script in seconds. Default is 3600 (1 hour).
 
 Type: `number`
 
 Default: `3600`
 
+### <a name="input_demo_script_token_ttl"></a> [demo\_script\_token\_ttl](#input\_demo\_script\_token\_ttl)
+
+Description: (Optional) TTL for tokens issued to the demo script in seconds. Default is 1800 (30 minutes).
+
+Type: `number`
+
+Default: `1800`
+
+### <a name="input_enable_demo_resources"></a> [enable\_demo\_resources](#input\_enable\_demo\_resources)
+
+Description: (Optional) Enable creation of demo script resources (AppRole backend, role, and policy). Default is true.
+
+Type: `bool`
+
+Default: `true`
+
 ## Resources
 
 The following resources are used by this module:
 
-- [vault_approle_auth_backend_role.azure_reader](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/approle_auth_backend_role) (resource)
+- [vault_approle_auth_backend_role.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/approle_auth_backend_role) (resource)
+- [vault_approle_auth_backend_role.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/approle_auth_backend_role) (resource)
 - [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/auth_backend) (resource)
-- [vault_azure_secret_backend.azure](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend) (resource)
-- [vault_azure_secret_backend_role.existing_object_id](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_role) (resource)
-- [vault_policy.azure_spn_reader](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
+- [vault_azure_secret_backend.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend) (resource)
+- [vault_azure_secret_backend_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_role) (resource)
+- [vault_azure_secret_backend_static_role.static_role](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_static_role) (resource)
+- [vault_policy.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
+- [vault_policy.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
 
 ## Outputs
 
 The following outputs are exported:
 
-### <a name="output_vault_approle_role_id"></a> [vault\_approle\_role\_id](#output\_vault\_approle\_role\_id)
+### <a name="output_azure_dynamic_role_name"></a> [azure\_dynamic\_role\_name](#output\_azure\_dynamic\_role\_name)
 
-Description: Role ID for AppRole azure-reader.
+Description: Name of the Azure dynamic credentials role.
+
+### <a name="output_azure_static_role_name"></a> [azure\_static\_role\_name](#output\_azure\_static\_role\_name)
+
+Description: Name of the Azure static credentials role.
+
+### <a name="output_demo_script_dynamic_approle_name"></a> [demo\_script\_dynamic\_approle\_name](#output\_demo\_script\_dynamic\_approle\_name)
+
+Description: Name of the AppRole for the dynamic credentials demo script.
+
+### <a name="output_demo_script_dynamic_role_id"></a> [demo\_script\_dynamic\_role\_id](#output\_demo\_script\_dynamic\_role\_id)
+
+Description: AppRole Role ID for the dynamic credentials demo script. Use this with Secret ID to authenticate.
+
+### <a name="output_demo_script_static_approle_name"></a> [demo\_script\_static\_approle\_name](#output\_demo\_script\_static\_approle\_name)
+
+Description: Name of the AppRole for the static credentials demo script.
+
+### <a name="output_demo_script_static_role_id"></a> [demo\_script\_static\_role\_id](#output\_demo\_script\_static\_role\_id)
+
+Description: AppRole Role ID for the static credentials demo script. Use this with Secret ID to authenticate.
 
 <!-- markdownlint-enable -->
 <!-- END_TF_DOCS -->
