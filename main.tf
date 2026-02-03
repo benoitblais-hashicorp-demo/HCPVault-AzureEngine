@@ -8,7 +8,6 @@ resource "vault_azure_secret_backend" "azure" {
   identity_token_ttl = var.azure_identity_token_ttl
   rotation_period    = var.azure_rotation_period
   rotation_window    = var.azure_rotation_window
-  rotation_schedule  = var.azure_rotation_schedule
 }
 
 # Create a role for existing Azure AD Application Object ID

@@ -36,18 +36,11 @@ variable "azure_rotation_period" {
   default     = 86400
 }
 
-variable "azure_rotation_schedule" {
-  type        = string
-  description = "(Optional) Cron schedule for root credential rotation."
-  default     = "0 */24 * * *"
-}
-
 variable "azure_rotation_window" {
   type        = number
   description = "(Optional) Window for root credential rotation (in seconds)."
   default     = 3600
 }
-
 
 variable "azure_secret_backend_path" {
   type        = string
