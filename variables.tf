@@ -30,10 +30,10 @@ variable "azure_identity_token_ttl" {
   default     = 3600
 }
 
-variable "azure_rotation_period" {
-  type        = number
-  description = "(Optional) Period for root credential rotation (in seconds)."
-  default     = 86400
+variable "azure_rotation_schedule" {
+  type        = string
+  description = "(Optional) Cron schedule for root credential rotation."
+  default     = "0 */24 * * *"
 }
 
 variable "azure_rotation_window" {
