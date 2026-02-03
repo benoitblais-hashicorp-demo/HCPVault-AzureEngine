@@ -131,14 +131,6 @@ Type: `number`
 
 Default: `86400`
 
-### <a name="input_azure_rotation_schedule"></a> [azure\_rotation\_schedule](#input\_azure\_rotation\_schedule)
-
-Description: (Optional) Cron schedule for root credential rotation.
-
-Type: `string`
-
-Default: `"0 */24 * * *"`
-
 ### <a name="input_azure_rotation_window"></a> [azure\_rotation\_window](#input\_azure\_rotation\_window)
 
 Description: (Optional) Window for root credential rotation (in seconds).
