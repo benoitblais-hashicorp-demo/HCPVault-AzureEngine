@@ -152,15 +152,3 @@ variable "enable_demo_resources" {
   description = "(Optional) Enable creation of demo script resources (AppRole backend, role, and policy). Default is true."
   default     = true
 }
-
-variable "vault_address" {
-  type        = string
-  description = "(Optional) Vault server address for output instructions."
-  default     = ""
-}
-
-variable "vault_namespace" {
-  type        = string
-  description = "(Optional) Vault namespace for output instructions."
-  default     = ""
-}

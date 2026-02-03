@@ -5,7 +5,7 @@ output "azure_dynamic_role_name" {
 
 output "azure_static_role_name" {
   description = "Name of the Azure static credentials role."
-  value       = length(vault_azure_secret_backend_static_role.static-role) > 0 ? var.azure_static_spn_role_name : null
+  value       = length(vault_azure_secret_backend_static_role.static_role) > 0 ? var.azure_static_spn_role_name : null
 }
 
 output "demo_script_dynamic_approle_name" {

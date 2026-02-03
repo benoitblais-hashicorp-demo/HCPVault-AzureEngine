@@ -41,18 +41,21 @@ For enhanced security, use HCP Terraform's dynamic provider credentials feature 
 This method uses workload identity (JWT/OIDC) to generate short-lived Vault tokens automatically.
 
 **Benefits:**
+
 - No static credentials stored in Terraform Cloud/Enterprise
 - Automatic token rotation with short TTL
 - Improved security posture with just-in-time authentication
 - Centralized audit trail in both HCP Terraform and Vault
 
 Use environment variables to authenticate with a static Vault token:
+
 - **TFC_VAULT_PROVIDER_AUTH**: Set the `TFC_VAULT_PROVIDER_AUTH` environment variable to `true`.
 - **TFC_VAULT_ADDR**: Set the `TFC_VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
 - **TFC_VAULT_NAMESPACE**: Set the `TFC_VAULT_NAMESPACE` environment variable to your Vault namespace (e.g., `admin`)
 - **TFC_VAULT_RUN_ROLE**: Set the `TFC_VAULT_RUN_ROLE` environment variable to the JWT role name configured in Vault (e.g., `hcp-terraform`)
 
 **Documentation:**
+
 - [HCP Terraform Dynamic Credentials](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/dynamic-provider-credentials)
 - [Vault JWT Auth Method](https://developer.hashicorp.com/vault/docs/auth/jwt)
 
@@ -92,6 +95,7 @@ vault read azure/creds/hcpvault-demo-existingobjectid
 ```
 
 This command will return a set of dynamic Azure credentials with the following information:
+
 - `client_id` - Azure Service Principal client ID
 - `client_secret` - Azure Service Principal client secret
 - `lease_duration` - Credential validity period (default: 5 minutes)
