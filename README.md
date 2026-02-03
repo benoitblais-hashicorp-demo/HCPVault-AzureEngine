@@ -68,7 +68,8 @@ Use environment variables to authenticate with a static Vault token:
 - Automates root credential rotation on a schedule (default: every 24 hours, configurable)
 - Supports both dynamic and static credential roles for different use cases
 - Provides optional demo resources with AppRole authentication for testing and demonstration
-- Includes ready-to-use demo script showing complete credential lifecycle
+- Includes ready-to-use demo scripts showing complete credential lifecycle
+- Includes automated rotation script for static credentials (cron-compatible)
 - Supports custom roles and policies for fine-grained access control
 
 ## How to Read Azure Secrets
@@ -119,6 +120,20 @@ This module includes optional demo scripts that showcase the complete Azure cred
   - Automatic credential lifecycle management
 
 See the [RUN\_DEMO.md](./docs/RUN\_DEMO.md) file for detailed instructions on running the demonstration.
+
+### Automated Static Credential Rotation
+
+For production environments requiring automated static credential management, this module includes a cron-compatible rotation script
+([rotate\_static\_credentials.sh](../rotate\_static\_credentials.sh)) that:
+
+- Authenticates using AppRole credentials
+- Reads static credentials from Vault (triggering rotation based on rotation\_period)
+- Logs rotation activity with timestamps for auditing
+- Securely handles Vault tokens with automatic revocation
+- Provides exit codes for monitoring and alerting
+
+See [ROTATION\_SCRIPT.md](./ROTATION\_SCRIPT.md) for detailed setup instructions, cron scheduling examples, and production deployment
+best practices.
 
 - Follows best practices for secret management and security
 
