@@ -13,6 +13,11 @@ variable "azure_client_id" {
     condition     = var.azure_client_id == "" || (var.azure_client_id != "" && var.azure_client_secret != "" && var.azure_subscription_id != "" && var.azure_tenant_id != "")
     error_message = "When azure_client_id is provided, `azure_client_secret`, `azure_subscription_id`, and `azure_tenant_id` must also be provided."
   }
+
+  validation {
+    condition     = var.azure_client_id == "" || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.azure_client_id))
+    error_message = "The azure_client_id must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+  }
 }
 
 variable "azure_client_secret" {
@@ -20,6 +25,11 @@ variable "azure_client_secret" {
   description = "(Optional if azure_client_id is provided) Azure Client Secret for Vault Azure secrets engine."
   default     = ""
   sensitive   = true
+
+  validation {
+    condition     = var.azure_client_secret == "" || length(var.azure_client_secret) >= 8
+    error_message = "The azure_client_secret must be at least 8 characters long."
+  }
 }
 
 variable "azure_dynamic_spn_max_ttl" {
@@ -32,6 +42,11 @@ variable "azure_dynamic_spn_object_id" {
   type        = string
   description = "(Optional) Azure AD Application Object ID for the SPN role with dynamic credentials."
   default     = ""
+
+  validation {
+    condition     = var.azure_dynamic_spn_object_id == "" || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.azure_dynamic_spn_object_id))
+    error_message = "The azure_dynamic_spn_object_id must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+  }
 }
 
 variable "azure_dynamic_spn_role_name" {
@@ -44,6 +59,11 @@ variable "azure_dynamic_spn_ttl" {
   type        = number
   description = "(Optional) TTL for the SPN role for dynamic credentials. Default is 300 seconds."
   default     = 300
+
+  validation {
+    condition     = var.azure_dynamic_spn_ttl <= var.azure_dynamic_spn_max_ttl
+    error_message = "The azure_dynamic_spn_ttl must be less than or equal to azure_dynamic_spn_max_ttl."
+  }
 }
 
 variable "azure_identity_token_ttl" {
@@ -79,6 +99,11 @@ variable "azure_static_spn_object_id" {
   type        = string
   description = "(Optional) Azure AD Application Object ID for the SPN role with static credentials."
   default     = ""
+
+  validation {
+    condition     = var.azure_static_spn_object_id == "" || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.azure_static_spn_object_id))
+    error_message = "The azure_static_spn_object_id must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+  }
 }
 
 variable "azure_static_spn_role_name" {
@@ -97,12 +122,22 @@ variable "azure_subscription_id" {
   type        = string
   description = "(Optional if azure_client_id is provided) Azure Subscription ID for Vault Azure secrets engine."
   default     = ""
+
+  validation {
+    condition     = var.azure_subscription_id == "" || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.azure_subscription_id))
+    error_message = "The azure_subscription_id must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+  }
 }
 
 variable "azure_tenant_id" {
   type        = string
   description = "(Optional if azure_client_id is provided) Azure Tenant ID for Vault Azure secrets engine."
   default     = ""
+
+  validation {
+    condition     = var.azure_tenant_id == "" || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.azure_tenant_id))
+    error_message = "The azure_tenant_id must be a valid GUID format (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+  }
 }
 
 variable "demo_script_dynamic_approle_name" {
@@ -145,6 +180,11 @@ variable "demo_script_token_ttl" {
   type        = number
   description = "(Optional) TTL for tokens issued to the demo script in seconds. Default is 1800 (30 minutes)."
   default     = 1800
+
+  validation {
+    condition     = var.demo_script_token_ttl <= var.demo_script_token_max_ttl
+    error_message = "The demo_script_token_ttl must be less than or equal to demo_script_token_max_ttl."
+  }
 }
 
 variable "enable_demo_resources" {
