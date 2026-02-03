@@ -24,11 +24,13 @@ Authentication to Vault can be configured using one of the following methods:
 - **VAULT_NAMESPACE**: Set to `admin` to provision resources in the admin namespace
 
 Example:
+
 ```bash
 export VAULT_ADDR="https://vault.example.com:8200"
 export VAULT_TOKEN="your-vault-token"
 export VAULT_NAMESPACE="admin"
 ```
+
 ## Features
 
 - Enables Vault Azure secrets engine for dynamic credential management
@@ -43,7 +45,10 @@ export VAULT_NAMESPACE="admin"
 
 ### Azure Service Principal (SPN)
 
-An Azure Service Principal (SPN) is required for the Vault Azure secrets engine to securely authenticate and interact with Azure resources. The SPN enables Vault to dynamically generate, rotate, and revoke credentials for applications and users, ensuring least-privilege access and automated credential lifecycle management. The permissions granted to the SPN determine which Azure resources Vault can manage and what operations it can perform.
+An Azure Service Principal (SPN) is required for the Vault Azure secrets engine to securely authenticate and interact with Azure
+resources. The SPN enables Vault to dynamically generate, rotate, and revoke credentials for applications and users, ensuring
+least-privilege access and automated credential lifecycle management. The permissions granted to the SPN determine which Azure resources
+Vault can manage and what operations it can perform.
 
 - **Required API permissions:**
   - `Microsoft.Authorization/roleAssignments/read`
