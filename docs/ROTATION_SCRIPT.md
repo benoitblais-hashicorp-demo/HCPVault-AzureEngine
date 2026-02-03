@@ -24,7 +24,7 @@ The `rotate_static_credentials.sh` script performs the following actions:
 ## Required Environment Variables
 
 | Variable | Description | Example |
-|----------|-------------|---------|
+| -------- | ----------- | ------- |
 | `VAULT_ADDR` | Vault server address | `https://vault.example.com:8200` |
 | `VAULT_NAMESPACE` | Vault namespace | `admin` |
 | `VAULT_STATIC_ROLE_ID` | AppRole Role ID for static credentials | `7bd975eb-f3f4-fa7f-8926-6d5088439ce0` |
@@ -176,6 +176,7 @@ Parse logs and expose metrics:
 **Error:** `Failed to authenticate to Vault`
 
 **Solutions:**
+
 - Verify VAULT_ADDR is correct and accessible
 - Check VAULT_STATIC_ROLE_ID is valid
 - Generate a new Secret ID: `vault write -f auth/approle/role/azure-demo-script-static/secret-id`
@@ -186,6 +187,7 @@ Parse logs and expose metrics:
 **Error:** `permission denied` when reading credentials
 
 **Solutions:**
+
 - Check the AppRole policy includes `azure/static-creds/<role-name>`
 - Verify the role name matches the configured Azure role in Vault
 - Check Vault namespace is correct
@@ -195,6 +197,7 @@ Parse logs and expose metrics:
 **Error:** Connection timeouts or network errors
 
 **Solutions:**
+
 - Verify network connectivity to Vault
 - Check firewall rules
 - Verify TLS certificates if using HTTPS
@@ -203,6 +206,7 @@ Parse logs and expose metrics:
 ## Security Best Practices
 
 1. **Protect Environment Files**
+
    ```bash
    chmod 600 /etc/vault/rotation.env
    chown root:root /etc/vault/rotation.env
@@ -229,7 +233,7 @@ Parse logs and expose metrics:
 
 ## Example Output
 
-```
+```text
 [2026-02-03 10:56:32] Starting static credentials rotation check
 [2026-02-03 10:56:32] Vault Address: https://vault.example.com:8200
 [2026-02-03 10:56:32] Vault Namespace: admin
