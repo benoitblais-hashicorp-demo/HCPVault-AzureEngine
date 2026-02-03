@@ -123,13 +123,13 @@ Type: `number`
 
 Default: `3600`
 
-### <a name="input_azure_rotation_period"></a> [azure\_rotation\_period](#input\_azure\_rotation\_period)
+### <a name="input_azure_rotation_schedule"></a> [azure\_rotation\_schedule](#input\_azure\_rotation\_schedule)
 
-Description: (Optional) Period for root credential rotation (in seconds).
+Description: (Optional) Cron schedule for root credential rotation.
 
-Type: `number`
+Type: `string`
 
-Default: `86400`
+Default: `"0 */24 * * *"`
 
 ### <a name="input_azure_rotation_window"></a> [azure\_rotation\_window](#input\_azure\_rotation\_window)
 
