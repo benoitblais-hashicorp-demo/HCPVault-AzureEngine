@@ -248,9 +248,5 @@ The following outputs are exported:
 
 Description: Role ID for AppRole azure-reader.
 
-### <a name="output_vault_approle_secret_id"></a> [vault\_approle\_secret\_id](#output\_vault\_approle\_secret\_id)
-
-Description: Secret ID for AppRole azure-reader.
-
 <!-- markdownlint-enable -->
 <!-- END_TF_DOCS -->
