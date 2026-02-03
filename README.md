@@ -109,8 +109,6 @@ No optional inputs.
 The following resources are used by this module:
 
 - [vault_azure_secret_backend.azure](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend) (resource)
-- [vault_azure_secret_backend_role.root_rotation](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_role) (resource)
-- [vault_azure_secret_backend_rotation.root](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_rotation) (resource)
 
 ## Outputs
 
