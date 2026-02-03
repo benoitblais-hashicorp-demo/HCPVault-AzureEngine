@@ -60,6 +60,28 @@ This demo illustrates the following key integration points:
    Core variables: `azure_client_id`, `azure_client_secret`, `azure_subscription_id`, `azure_tenant_id`. Azure AD Application Object
    IDs: `azure_dynamic_spn_object_id` and `azure_static_spn_object_id` must be configured for the respective credential roles.
 
+## Prerequisites
+
+Before running the demo, ensure you have the following:
+
+1. **Azure CLI Installed** - Required for authenticating to Azure with generated credentials
+   - Download from: <https://learn.microsoft.com/en-us/cli/azure/install-azure-cli>
+   - On Windows, after installation, you may need to add to PATH: `C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin`
+   - Verify installation: `az version`
+
+2. **Vault CLI Installed** - Required for generating Secret IDs
+   - Download from: <https://developer.hashicorp.com/vault/install>
+   - Verify installation: `vault version`
+
+3. **Terraform Outputs** - Retrieve Role IDs after Terraform deployment
+   - `terraform output demo_script_dynamic_role_id`
+   - `terraform output demo_script_static_role_id`
+
+4. **Azure Tenant ID** - Your Azure Active Directory tenant ID
+   - Find in Azure Portal → Azure Active Directory → Overview
+
+**Important Note:** The demo service principals authenticate successfully to Azure but may show "No subscriptions found" if no Azure RBAC roles are assigned. This is expected behavior - it demonstrates that Vault is generating valid Azure credentials. For production use, assign appropriate Azure roles (Reader, Contributor, etc.) to give the service principals actual permissions.
+
 ## How Module Lifecycle Works in This Demo
 
 This demo uses AppRole authentication in Vault to enable secure machine-to-machine authentication. Two separate AppRole roles are
