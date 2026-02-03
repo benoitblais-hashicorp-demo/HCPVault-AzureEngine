@@ -1,6 +1,7 @@
 # Static Credentials Rotation Script
 
-This script automates the periodic reading of static Azure credentials from Vault, which triggers Vault's automatic rotation mechanism when the TTL expires. It's designed to be run via cron or other scheduling systems.
+This script automates the periodic reading of static Azure credentials from Vault, which triggers Vault's automatic rotation mechanism when the TTL
+expires. It's designed to be run via cron or other scheduling systems.
 
 ## Overview
 
