@@ -227,7 +227,7 @@ Default: `3600`
 
 ### <a name="input_azure_rotation_schedule"></a> [azure\_rotation\_schedule](#input\_azure\_rotation\_schedule)
 
-Description: (Optional) Cron schedule for root credential rotation. Default is "0 */24 * * *".
+Description: (Optional) Cron schedule for root credential rotation.
 
 Type: `string`
 
