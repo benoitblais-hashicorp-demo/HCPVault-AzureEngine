@@ -47,15 +47,18 @@ This demo illustrates the following key integration points:
 
 1. **Terraform Configuration Files**
 
-   Provisions HCP Vault resources including Azure secrets engine, dynamic and static credential roles, AppRole authentication backend, and least-privilege policies. Created when variable `enable_demo_resources` is set to `true`.
+   Provisions HCP Vault resources including Azure secrets engine, dynamic and static credential roles, AppRole authentication backend,
+   and least-privilege policies. Created when variable `enable_demo_resources` is set to `true`.
 
 1. **Demo Scripts**
 
-   Two Bash scripts demonstrate credential retrieval and usage: `demo_azure_dynamic_credentials.sh` for short-lived credentials and `demo_azure_static_credentials.sh` for long-lived credentials. Both scripts include least-privilege testing.
+   Two Bash scripts demonstrate credential retrieval and usage: `demo_azure_dynamic_credentials.sh` for short-lived credentials and
+   `demo_azure_static_credentials.sh` for long-lived credentials. Both scripts include least-privilege testing.
 
 1. **Required Variables**
 
-   Core variables: `azure_client_id`, `azure_client_secret`, `azure_subscription_id`, `azure_tenant_id`. Azure AD Application Object IDs: `azure_dynamic_spn_object_id` and `azure_static_spn_object_id` must be configured for the respective credential roles.
+   Core variables: `azure_client_id`, `azure_client_secret`, `azure_subscription_id`, `azure_tenant_id`. Azure AD Application Object
+   IDs: `azure_dynamic_spn_object_id` and `azure_static_spn_object_id` must be configured for the respective credential roles.
 
 ## How Module Lifecycle Works in This Demo
 
@@ -70,76 +73,81 @@ control is enforced at the Vault policy level.
 
 1. **Retrieve Demo Credentials**
 
-   Before running the demo scripts, you must retrieve the AppRole credentials that applications will use to authenticate to Vault. The Role ID (static identifier) is obtained from Terraform outputs, while the Secret ID (dynamic, short-lived credential) must be generated on-demand using the Vault CLI. These two pieces together form the AppRole authentication credentials required by the demo scripts.
+   Before running the demo scripts, you must retrieve the AppRole credentials that applications will use to authenticate to Vault. The
+   Role ID (static identifier) is obtained from Terraform outputs, while the Secret ID (dynamic, short-lived credential) must be
+   generated on-demand using the Vault CLI. These two pieces together form the AppRole authentication credentials required by the demo
+   scripts.
 
    ```bash
-# Set Vault environment variables
-export VAULT_ADDR="https://your-vault.example.com:8200"
-export VAULT_NAMESPACE="admin"
-export VAULT_TOKEN="<your-vault-token>"
+   # Set Vault environment variables
+   export VAULT_ADDR="https://your-vault.example.com:8200"
+   export VAULT_NAMESPACE="admin"
+   export VAULT_TOKEN="your-vault-token"
 
-# Get Role IDs from Terraform output
-terraform output demo_script_dynamic_role_id  # For dynamic demo
-terraform output demo_script_static_role_id   # For static demo
+   # Get Role IDs from Terraform output
+   terraform output demo_script_dynamic_role_id  # For dynamic demo
+   terraform output demo_script_static_role_id   # For static demo
 
-# Generate Secret ID for dynamic demo
-vault write -f auth/approle/role/azure-demo-script-dynamic/secret-id
+   # Generate Secret ID for dynamic demo
+   vault write -f auth/approle/role/azure-demo-script-dynamic/secret-id
 
-# Generate Secret ID for static demo
-vault write -f auth/approle/role/azure-demo-script-static/secret-id
+   # Generate Secret ID for static demo
+   vault write -f auth/approle/role/azure-demo-script-static/secret-id
    ```
 
    **Expected Output:**
 
    ```text
    Key                   Value
----                   -----
-secret_id             987fcdeb-51a2-a268-8f25-2ead583453fe
-secret_id_accessor    b4405d83-a973-f9de-6773-5e3e6e12e4e8
-secret_id_num_uses    0
-secret_id_ttl         0s
+   ---                   -----
+   secret_id             987fcdeb-51a2-a268-8f25-2ead583453fe
+   secret_id_accessor    b4405d83-a973-f9de-6773-5e3e6e12e4e8
+   secret_id_num_uses    0
+   secret_id_ttl         0s
    ```
 
-1. **Set Environment Variables for Demo Scripts**
+2. **Set Environment Variables for Demo Scripts**
 
-   The demo scripts require environment variables to configure Vault connection details and authentication credentials. Each demo uses unique variable names to allow running both demos independently without conflicts.
+   The demo scripts require environment variables to configure Vault connection details and authentication credentials. Each demo uses
+   unique variable names to allow running both demos independently without conflicts.
 
    **For Dynamic Demo:**
 
    ```bash
-export VAULT_ADDR="https://your-vault.example.com:8200"
-export VAULT_NAMESPACE="admin"
-export VAULT_DYNAMIC_ROLE_ID="<demo_script_dynamic_role_id-from-terraform-output>"
-export VAULT_DYNAMIC_SECRET_ID="<dynamic-secret-id-from-step-1>"
-export AZURE_TENANT_ID="<your-azure-tenant-id>"
+   export VAULT_ADDR="https://your-vault.example.com:8200"
+   export VAULT_NAMESPACE="admin"
+   export VAULT_DYNAMIC_ROLE_ID="demo_script_dynamic_role_id-from-terraform-output"
+   export VAULT_DYNAMIC_SECRET_ID="dynamic-secret-id-from-step-1"
+   export AZURE_TENANT_ID="your-azure-tenant-id"
    ```
 
    **For Static Demo:**
 
    ```bash
-export VAULT_ADDR="https://your-vault.example.com:8200"
-export VAULT_NAMESPACE="admin"
-export VAULT_STATIC_ROLE_ID="<demo_script_static_role_id-from-terraform-output>"
-export VAULT_STATIC_SECRET_ID="<static-secret-id-from-step-1>"
-export AZURE_TENANT_ID="<your-azure-tenant-id>"
+   export VAULT_ADDR="https://your-vault.example.com:8200"
+   export VAULT_NAMESPACE="admin"
+   export VAULT_STATIC_ROLE_ID="demo_script_static_role_id-from-terraform-output"
+   export VAULT_STATIC_SECRET_ID="static-secret-id-from-step-1"
+   export AZURE_TENANT_ID="your-azure-tenant-id"
    ```
 
-1. **Run the Demo Scripts**
+3. **Run the Demo Scripts**
 
-   The scripts authenticate to Vault using AppRole, retrieve Azure credentials, authenticate to Azure CLI, display account information, and demonstrate least-privilege enforcement by attempting cross-access (which fails as expected).
+   The scripts authenticate to Vault using AppRole, retrieve Azure credentials, authenticate to Azure CLI, display account information,
+   and demonstrate least-privilege enforcement by attempting cross-access (which fails as expected).
 
    **Run Dynamic Demo:**
 
    ```bash
-chmod +x demo_azure_dynamic_credentials.sh
-./demo_azure_dynamic_credentials.sh
+   chmod +x demo_azure_dynamic_credentials.sh
+   ./demo_azure_dynamic_credentials.sh
    ```
 
    **Run Static Demo:**
 
    ```bash
-chmod +x demo_azure_static_credentials.sh
-./demo_azure_static_credentials.sh
+   chmod +x demo_azure_static_credentials.sh
+   ./demo_azure_static_credentials.sh
    ```
 
 ## Demo Value Proposition
