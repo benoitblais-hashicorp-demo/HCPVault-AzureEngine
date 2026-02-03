@@ -42,18 +42,21 @@ For enhanced security, use HCP Terraform's dynamic provider credentials feature 
 This method uses workload identity (JWT/OIDC) to generate short-lived Vault tokens automatically.
 
 **Benefits:**
+
 - No static credentials stored in Terraform Cloud/Enterprise
 - Automatic token rotation with short TTL
 - Improved security posture with just-in-time authentication
 - Centralized audit trail in both HCP Terraform and Vault
 
 Use environment variables to authenticate with a static Vault token:
+
 - **TFC\_VAULT\_PROVIDER\_AUTH**: Set the `TFC_VAULT_PROVIDER_AUTH` environment variable to `true`.
 - **TFC\_VAULT\_ADDR**: Set the `TFC_VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
 - **TFC\_VAULT\_NAMESPACE**: Set the `TFC_VAULT_NAMESPACE` environment variable to your Vault namespace (e.g., `admin`)
 - **TFC\_VAULT\_RUN\_ROLE**: Set the `TFC_VAULT_RUN_ROLE` environment variable to the JWT role name configured in Vault (e.g., `hcp-terraform`)
 
 **Documentation:**
+
 - [HCP Terraform Dynamic Credentials](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/dynamic-provider-credentials)
 - [Vault JWT Auth Method](https://developer.hashicorp.com/vault/docs/auth/jwt)
 
@@ -93,6 +96,7 @@ vault read azure/creds/hcpvault-demo-existingobjectid
 ```
 
 This command will return a set of dynamic Azure credentials with the following information:
+
 - `client_id` - Azure Service Principal client ID
 - `client_secret` - Azure Service Principal client secret
 - `lease_duration` - Credential validity period (default: 5 minutes)
@@ -227,7 +231,7 @@ Default: `3600`
 
 ### <a name="input_azure_rotation_schedule"></a> [azure\_rotation\_schedule](#input\_azure\_rotation\_schedule)
 
-Description: (Optional) Cron schedule for root credential rotation.
+Description: (Optional) Cron schedule for root credential rotation. Default is "0 */24 * * *".
 
 Type: `string`
 
@@ -353,22 +357,6 @@ Type: `bool`
 
 Default: `true`
 
-### <a name="input_vault_address"></a> [vault\_address](#input\_vault\_address)
-
-Description: (Optional) Vault server address for output instructions.
-
-Type: `string`
-
-Default: `""`
-
-### <a name="input_vault_namespace"></a> [vault\_namespace](#input\_vault\_namespace)
-
-Description: (Optional) Vault namespace for output instructions.
-
-Type: `string`
-
-Default: `""`
-
 ## Resources
 
 The following resources are used by this module:
@@ -378,7 +366,7 @@ The following resources are used by this module:
 - [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/auth_backend) (resource)
 - [vault_azure_secret_backend.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend) (resource)
 - [vault_azure_secret_backend_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_role) (resource)
-- [vault_azure_secret_backend_static_role.static-role](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_static_role) (resource)
+- [vault_azure_secret_backend_static_role.static_role](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_static_role) (resource)
 - [vault_policy.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
 - [vault_policy.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
 
