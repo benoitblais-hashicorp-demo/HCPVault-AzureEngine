@@ -102,8 +102,10 @@ echo -e "${YELLOW}Step 3a: Testing least-privilege access (attempting to read dy
 DYNAMIC_ROLE_NAME="${DYNAMIC_ROLE_NAME:-HCPVault-Demo-Dynamic}"
 echo -e "Attempting to read: azure/creds/${DYNAMIC_ROLE_NAME}"
 
+set +e  # Temporarily disable exit on error for expected failure
 DYNAMIC_ATTEMPT=$(vault read -format=json azure/creds/${DYNAMIC_ROLE_NAME} 2>&1)
 DYNAMIC_EXIT_CODE=$?
+set -e  # Re-enable exit on error
 
 if [ $DYNAMIC_EXIT_CODE -ne 0 ]; then
     echo -e "${GREEN}✓ Access denied as expected (least-privilege enforcement)${NC}"
@@ -124,35 +126,60 @@ if [ -z "$AZURE_TENANT_ID" ]; then
     read -p "AZURE_TENANT_ID: " AZURE_TENANT_ID
 fi
 
-az login --service-principal \
+set +e  # Temporarily disable exit on error
+AZ_LOGIN_OUTPUT=$(az login --service-principal \
     --username "$CLIENT_ID" \
     --password "$CLIENT_SECRET" \
     --tenant "$AZURE_TENANT_ID" \
-    --output table
+    --output json 2>&1)
+AZ_LOGIN_EXIT_CODE=$?
+set -e  # Re-enable exit on error
 
-if [ $? -ne 0 ]; then
+if [ $AZ_LOGIN_EXIT_CODE -eq 0 ]; then
+    echo -e "${GREEN}✓ Successfully authenticated to Azure${NC}"
+    
+    # Step 5: Display Azure account information
+    echo -e "\n${YELLOW}Step 5: Displaying Azure account information...${NC}"
+    echo -e "\n${BLUE}Account Details:${NC}"
+    az account show --output table
+    
+    echo -e "\n${BLUE}Subscriptions:${NC}"
+    az account list --output table
+    
+    echo -e "\n${BLUE}Resource Groups (first 10):${NC}"
+    az group list --output table --query "[].{Name:name, Location:location, Status:properties.provisioningState}" | head -n 12
+    
+    # Step 6: Cleanup (logout from Azure)
+    echo -e "\n${YELLOW}Step 6: Cleaning up...${NC}"
+    az logout
+    echo -e "${GREEN}✓ Logged out from Azure${NC}"
+elif echo "$AZ_LOGIN_OUTPUT" | grep -q "No subscriptions found"; then
+    echo -e "${GREEN}✓ Successfully authenticated to Azure${NC}"
+    echo -e "${YELLOW}⚠ Note: Service principal has no subscription access${NC}"
+    echo -e "  The credentials are valid but this service principal has no Azure RBAC role assignments."
+    echo -e "  In a production environment, you would assign roles like:"
+    echo -e "    • Reader - for read-only access"
+    echo -e "    • Contributor - for resource management"
+    echo -e "    • Custom roles - for specific permissions"
+    echo -e "\n${BLUE}Credential Details:${NC}"
+    echo -e "  Client ID: ${CLIENT_ID}"
+    echo -e "  Status: Authenticated but no subscription access"
+    echo -e "  This demonstrates that Vault successfully manages static Azure credentials.\n"
+else
     echo -e "${RED}Error: Failed to authenticate to Azure${NC}"
+    echo -e "${RED}${AZ_LOGIN_OUTPUT}${NC}"
     exit 1
 fi
-
-echo -e "${GREEN}✓ Successfully authenticated to Azure${NC}\n"
-
-# Step 5: Display Azure account information
-echo -e "${YELLOW}Step 5: Displaying Azure account information...${NC}"
-echo -e "\n${BLUE}Account Details:${NC}"
-az account show --output table
-
-echo -e "\n${BLUE}Subscriptions:${NC}"
-az account list --output table
-
-echo -e "\n${BLUE}Resource Groups (first 10):${NC}"
-az group list --output table --query "[].{Name:name, Location:location, Status:properties.provisioningState}" | head -n 12
 
 # Step 6: Demonstrate credential lifecycle
 echo -e "\n${YELLOW}Step 6: Credential Lifecycle Information${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo -e "These credentials are static and managed by Vault with automatic rotation."
-echo -e "Vault rotates the credentials based on the configured TTL: ${TTL} seconds ($(($TTL / 86400)) days)."
+if [ "$TTL" != "N/A" ] && [ -n "$TTL" ] && [ "$TTL" -gt 0 ]; then
+    echo -e "Vault rotates the credentials based on the configured TTL: ${TTL} seconds ($(($TTL / 86400)) days)."
+else
+    echo -e "These static credentials are managed by Vault with automatic rotation on a schedule."
+fi
 echo -e "\n${BLUE}Key Benefits of Static Credentials:${NC}"
 echo -e "  • Consistent credentials across multiple reads"
 echo -e "  • Automatic rotation by Vault (no application changes needed)"
@@ -162,10 +189,12 @@ echo -e "\n${BLUE}Comparison with Dynamic Credentials:${NC}"
 echo -e "  Dynamic: Short-lived (minutes), unique per request, automatic revocation"
 echo -e "  Static: Long-lived (days/months), consistent across reads, rotated by Vault"
 
-# Step 7: Cleanup (logout from Azure)
+# Step 7: Cleanup (logout from Azure if logged in)
 echo -e "\n${YELLOW}Step 7: Cleaning up...${NC}"
-az logout
-echo -e "${GREEN}✓ Logged out from Azure${NC}"
+set +e
+az logout 2>/dev/null
+set -e
+echo -e "${GREEN}✓ Cleanup completed${NC}"
 
 echo -e "\n${GREEN}========================================${NC}"
 echo -e "${GREEN}Demo completed successfully!${NC}"
