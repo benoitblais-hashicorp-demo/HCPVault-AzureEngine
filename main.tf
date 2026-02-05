@@ -87,6 +87,11 @@ path "${var.azure_secret_backend_path}/static-creds/${var.azure_static_spn_role_
   capabilities = ["read"]
 }
 
+# Allow rotating static Azure credentials
+path "${var.azure_secret_backend_path}/rotate-role/${var.azure_static_spn_role_name}" {
+  capabilities = ["update"]
+}
+
 # Allow listing Azure roles
 path "${var.azure_secret_backend_path}/roles" {
   capabilities = ["list"]
