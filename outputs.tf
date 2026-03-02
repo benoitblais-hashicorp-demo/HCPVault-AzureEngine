@@ -27,3 +27,8 @@ output "demo_script_static_role_id" {
   description = "AppRole Role ID for the static credentials demo script. Use this with Secret ID to authenticate."
   value       = var.enable_demo_resources && length(vault_approle_auth_backend_role.demo_script_static) > 0 ? vault_approle_auth_backend_role.demo_script_static[0].role_id : null
 }
+
+output "namespace_path" {
+  description = "Path of the Vault namespace where all resources are created."
+  value       = vault_namespace.azureengine_demo.path
+}

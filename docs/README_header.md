@@ -9,6 +9,7 @@ following best practices for secret management and automation.
 
 ### Vault
 
+- Requires capability to create and manage namespaces (`create`, `update`, `read`, `delete` on `sys/namespaces/*`).
 - Requires capability to enable and configure the Azure secrets engine (`update`, `create`, `read`, `delete` on `sys/mounts` and `azure/*`).
 - Requires ability to create, update, and delete secret backend roles (`create`, `update`, `read`, `delete` on `azure/roles/*`).
 - Requires ability to manage credential rotation schedules and policies (`update`, `read` on `azure/*`).
@@ -25,7 +26,7 @@ Use environment variables to authenticate with a static Vault token:
 
 - **VAULT_TOKEN**: Set the `VAULT_TOKEN` environment variable with a valid Vault token
 - **VAULT_ADDR**: Set the `VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
-- **VAULT_NAMESPACE**: Set to `admin` to provision resources in the admin namespace
+- **VAULT_NAMESPACE**: (Optional) Set to the parent namespace where the module will create the sub-namespace (e.g., `admin`). If not set, the namespace will be created at the root level.
 
 Example:
 
@@ -51,7 +52,7 @@ Use environment variables to authenticate with a static Vault token:
 
 - **TFC_VAULT_PROVIDER_AUTH**: Set the `TFC_VAULT_PROVIDER_AUTH` environment variable to `true`.
 - **TFC_VAULT_ADDR**: Set the `TFC_VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
-- **TFC_VAULT_NAMESPACE**: Set the `TFC_VAULT_NAMESPACE` environment variable to your Vault namespace (e.g., `admin`)
+- **TFC_VAULT_NAMESPACE**: (Optional) Set the `TFC_VAULT_NAMESPACE` environment variable to the parent namespace where the module will create the sub-namespace (e.g., `admin`). If not set, the namespace will be created at the root level.
 - **TFC_VAULT_RUN_ROLE**: Set the `TFC_VAULT_RUN_ROLE` environment variable to the JWT role name configured in Vault (e.g., `hcp-terraform`)
 
 **Documentation:**
@@ -61,6 +62,7 @@ Use environment variables to authenticate with a static Vault token:
 
 ## Features
 
+- Creates a dedicated Vault namespace for complete resource isolation (configurable via `namespace_path` variable)
 - Enables Vault Azure secrets engine for credential management
 - All backend, role, and policy attributes are configurable via variables for maximum flexibility
 - Securely stores Azure credentials using sensitive Terraform variables
@@ -77,9 +79,11 @@ To read Azure secrets from Vault, first set the required environment variables:
 
 ```bash
 export VAULT_ADDR=""
-export VAULT_NAMESPACE=""
+export VAULT_NAMESPACE="azureengine-demo"  # Or your custom namespace_path value
 export VAULT_TOKEN=""
 ```
+
+**Note**: All resources created by this module are provisioned within the namespace specified by the `namespace_path` variable (default: `azureengine-demo`). Make sure to set the `VAULT_NAMESPACE` environment variable to match your configured namespace path.
 
 Then, use the following Vault CLI command to retrieve dynamic Azure credentials:
 
@@ -87,12 +91,12 @@ Then, use the following Vault CLI command to retrieve dynamic Azure credentials:
 vault read azure/creds/<role_name>
 ```
 
-Replace `<role_name>` with the name of the Azure role you have configured (e.g., `hcpvault-demo-existingobjectid`).
+Replace `<role_name>` with the name of the Azure role you have configured (e.g., `HCPVault-Demo-Dynamic`).
 
 Example:
 
 ```bash
-vault read azure/creds/hcpvault-demo-existingobjectid
+vault read azure/creds/HCPVault-Demo-Dynamic
 ```
 
 This command will return a set of dynamic Azure credentials with the following information:
@@ -123,7 +127,7 @@ See the [RUN_DEMO.md](./docs/RUN_DEMO.md) file for detailed instructions on runn
 ### Automated Static Credential Rotation
 
 For production environments requiring automated static credential management, this module includes a cron-compatible rotation script
-([rotate_static_credentials.sh](../rotate_static_credentials.sh)) that:
+([rotate_static_credentials.sh](../scripts/rotate_static_credentials.sh)) that:
 
 - Authenticates using AppRole credentials
 - Reads static credentials from Vault (triggering rotation based on rotation_period)
