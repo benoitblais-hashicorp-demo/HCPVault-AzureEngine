@@ -52,8 +52,8 @@ This demo illustrates the following key integration points:
 
 1. **Demo Scripts**
 
-   Two Bash scripts demonstrate credential retrieval and usage: `demo_azure_dynamic_credentials.sh` for short-lived credentials and
-   `demo_azure_static_credentials.sh` for long-lived credentials. Both scripts include least-privilege testing.
+   Two Bash scripts demonstrate credential retrieval and usage: `scripts/demo_azure_dynamic_credentials.sh` for short-lived credentials and
+   `scripts/demo_azure_static_credentials.sh` for long-lived credentials. Both scripts include least-privilege testing.
 
 1. **Required Variables**
 
@@ -103,7 +103,7 @@ control is enforced at the Vault policy level.
    ```bash
    # Set Vault environment variables
    export VAULT_ADDR="https://your-vault.example.com:8200"
-   export VAULT_NAMESPACE="admin"
+   export VAULT_NAMESPACE="azureengine-demo"  # Or your custom namespace_path value
    export VAULT_TOKEN="your-vault-token"
 
    # Get Role IDs from Terraform output
@@ -137,7 +137,7 @@ control is enforced at the Vault policy level.
 
    ```bash
    export VAULT_ADDR="https://your-vault.example.com:8200"
-   export VAULT_NAMESPACE="admin"
+   export VAULT_NAMESPACE="azureengine-demo"  # Or your custom namespace_path value
    export VAULT_DYNAMIC_ROLE_ID="demo_script_dynamic_role_id-from-terraform-output"
    export VAULT_DYNAMIC_SECRET_ID="dynamic-secret-id-from-step-1"
    export AZURE_TENANT_ID="your-azure-tenant-id"
@@ -147,7 +147,7 @@ control is enforced at the Vault policy level.
 
    ```bash
    export VAULT_ADDR="https://your-vault.example.com:8200"
-   export VAULT_NAMESPACE="admin"
+   export VAULT_NAMESPACE="azureengine-demo"  # Or your custom namespace_path value
    export VAULT_STATIC_ROLE_ID="demo_script_static_role_id-from-terraform-output"
    export VAULT_STATIC_SECRET_ID="static-secret-id-from-step-1"
    export AZURE_TENANT_ID="your-azure-tenant-id"
@@ -161,15 +161,15 @@ control is enforced at the Vault policy level.
    **Run Dynamic Demo:**
 
    ```bash
-   chmod +x demo_azure_dynamic_credentials.sh
-   ./demo_azure_dynamic_credentials.sh
+   chmod +x scripts/demo_azure_dynamic_credentials.sh
+   ./scripts/demo_azure_dynamic_credentials.sh
    ```
 
    **Run Static Demo:**
 
    ```bash
-   chmod +x demo_azure_static_credentials.sh
-   ./demo_azure_static_credentials.sh
+   chmod +x scripts/demo_azure_static_credentials.sh
+   ./scripts/demo_azure_static_credentials.sh
    ```
 
 ## Demo Value Proposition

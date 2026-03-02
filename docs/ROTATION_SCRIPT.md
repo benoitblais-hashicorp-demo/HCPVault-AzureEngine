@@ -5,7 +5,7 @@ expires. It's designed to be run via cron or other scheduling systems.
 
 ## Overview
 
-The `rotate_static_credentials.sh` script performs the following actions:
+The `scripts/rotate_static_credentials.sh` script performs the following actions:
 
 1. **Authenticates to Vault** using AppRole (Role ID + Secret ID)
 2. **Reads static Azure credentials** from Vault (triggers rotation if TTL expired)
@@ -26,7 +26,7 @@ The `rotate_static_credentials.sh` script performs the following actions:
 | Variable | Description | Example |
 | -------- | ----------- | ------- |
 | `VAULT_ADDR` | Vault server address | `https://vault.example.com:8200` |
-| `VAULT_NAMESPACE` | Vault namespace | `admin` |
+| `VAULT_NAMESPACE` | Vault namespace (must match the module's `namespace_path` variable) | `azureengine-demo` |
 | `VAULT_STATIC_ROLE_ID` | AppRole Role ID for static credentials | `7bd975eb-f3f4-fa7f-8926-6d5088439ce0` |
 | `VAULT_STATIC_SECRET_ID` | AppRole Secret ID for static credentials | Generated via `vault write -f auth/approle/role/.../secret-id` |
 | `VAULT_STATIC_ROLE_NAME` | Azure static credentials role name (optional) | `HCPVault-Demo-Static` (default) |
@@ -38,13 +38,13 @@ The `rotate_static_credentials.sh` script performs the following actions:
 ```bash
 # Set environment variables
 export VAULT_ADDR="https://vault.example.com:8200"
-export VAULT_NAMESPACE="admin"
+export VAULT_NAMESPACE="azureengine-demo"  # Or your custom namespace_path value
 export VAULT_STATIC_ROLE_ID="your-role-id"
 export VAULT_STATIC_SECRET_ID="your-secret-id"
 export VAULT_STATIC_ROLE_NAME="HCPVault-Demo-Static"  # Optional
 
 # Run the script
-./rotate_static_credentials.sh
+./scripts/rotate_static_credentials.sh
 ```
 
 ### Automated Execution with Cron
@@ -55,7 +55,7 @@ Create an environment file `/etc/vault/rotation.env`:
 
 ```bash
 VAULT_ADDR=https://vault.example.com:8200
-VAULT_NAMESPACE=admin
+VAULT_NAMESPACE=azureengine-demo
 VAULT_STATIC_ROLE_ID=7bd975eb-f3f4-fa7f-8926-6d5088439ce0
 VAULT_STATIC_SECRET_ID=your-secret-id
 VAULT_STATIC_ROLE_NAME=HCPVault-Demo-Static
@@ -66,7 +66,7 @@ Create a wrapper script `/usr/local/bin/vault-rotation-wrapper.sh`:
 ```bash
 #!/bin/bash
 source /etc/vault/rotation.env
-/path/to/rotate_static_credentials.sh
+/path/to/scripts/rotate_static_credentials.sh
 ```
 
 Add to crontab:
@@ -86,7 +86,7 @@ Add to crontab:
 
 ```cron
 # Run daily at 2 AM with environment variables
-0 2 * * * VAULT_ADDR=https://vault.example.com:8200 VAULT_NAMESPACE=admin VAULT_STATIC_ROLE_ID=xxx VAULT_STATIC_SECRET_ID=xxx /path/to/rotate_static_credentials.sh >> /var/log/vault-rotation.log 2>&1
+0 2 * * * VAULT_ADDR=https://vault.example.com:8200 VAULT_NAMESPACE=azureengine-demo VAULT_STATIC_ROLE_ID=xxx VAULT_STATIC_SECRET_ID=xxx /path/to/scripts/rotate_static_credentials.sh >> /var/log/vault-rotation.log 2>&1
 ```
 
 **⚠️ Security Warning:** Storing credentials in crontab is not recommended. Use the environment file approach with proper file permissions (600 or 400).
@@ -268,8 +268,8 @@ rotate_credentials:
   before_script:
     - apk add --no-cache jq
   script:
-    - chmod +x rotate_static_credentials.sh
-    - ./rotate_static_credentials.sh
+    - chmod +x scripts/rotate_static_credentials.sh
+    - ./scripts/rotate_static_credentials.sh
   variables:
     VAULT_ADDR: $VAULT_ADDR
     VAULT_NAMESPACE: $VAULT_NAMESPACE
@@ -287,7 +287,7 @@ pipeline {
     
     environment {
         VAULT_ADDR = credentials('vault-addr')
-        VAULT_NAMESPACE = 'admin'
+        VAULT_NAMESPACE = 'azureengine-demo'  // Or your custom namespace_path value
         VAULT_STATIC_ROLE_ID = credentials('vault-static-role-id')
         VAULT_STATIC_SECRET_ID = credentials('vault-static-secret-id')
     }
@@ -299,7 +299,7 @@ pipeline {
     stages {
         stage('Rotate Credentials') {
             steps {
-                sh './rotate_static_credentials.sh'
+                sh './scripts/rotate_static_credentials.sh'
             }
         }
     }
