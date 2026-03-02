@@ -31,7 +31,7 @@ resource "vault_azure_secret_backend_role" "this" {
 }
 
 # Create a role to generate static credentials for existing Azure AD Application Object ID
-resource "vault_azure_secret_backend_static_role" "static_role" {
+resource "vault_azure_secret_backend_static_role" "this" {
   count = length(vault_azure_secret_backend.this) > 0 && var.azure_static_spn_object_id != "" && var.azure_static_spn_object_id != null ? 1 : 0
 
   namespace             = vault_namespace.azureengine_demo.path
