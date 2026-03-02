@@ -10,6 +10,7 @@ following best practices for secret management and automation.
 
 ### Vault
 
+- Requires capability to create and manage namespaces (`create`, `update`, `read`, `delete` on `sys/namespaces/*`).
 - Requires capability to enable and configure the Azure secrets engine (`update`, `create`, `read`, `delete` on `sys/mounts` and `azure/*`).
 - Requires ability to create, update, and delete secret backend roles (`create`, `update`, `read`, `delete` on `azure/roles/*`).
 - Requires ability to manage credential rotation schedules and policies (`update`, `read` on `azure/*`).
@@ -26,7 +27,7 @@ Use environment variables to authenticate with a static Vault token:
 
 - **VAULT\_TOKEN**: Set the `VAULT_TOKEN` environment variable with a valid Vault token
 - **VAULT\_ADDR**: Set the `VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
-- **VAULT\_NAMESPACE**: Set to `admin` to provision resources in the admin namespace
+- **VAULT\_NAMESPACE**: (Optional) Set to the parent namespace where the module will create the sub-namespace (e.g., `admin`). If not set, the namespace will be created at the root level.
 
 Example:
 
@@ -52,7 +53,7 @@ Use environment variables to authenticate with a static Vault token:
 
 - **TFC\_VAULT\_PROVIDER\_AUTH**: Set the `TFC_VAULT_PROVIDER_AUTH` environment variable to `true`.
 - **TFC\_VAULT\_ADDR**: Set the `TFC_VAULT_ADDR` environment variable to your Vault server address (e.g., `https://vault.example.com:8200`)
-- **TFC\_VAULT\_NAMESPACE**: Set the `TFC_VAULT_NAMESPACE` environment variable to your Vault namespace (e.g., `admin`)
+- **TFC\_VAULT\_NAMESPACE**: (Optional) Set the `TFC_VAULT_NAMESPACE` environment variable to the parent namespace where the module will create the sub-namespace (e.g., `admin`). If not set, the namespace will be created at the root level.
 - **TFC\_VAULT\_RUN\_ROLE**: Set the `TFC_VAULT_RUN_ROLE` environment variable to the JWT role name configured in Vault (e.g., `hcp-terraform`)
 
 **Documentation:**
@@ -62,6 +63,7 @@ Use environment variables to authenticate with a static Vault token:
 
 ## Features
 
+- Creates a dedicated Vault namespace for complete resource isolation (configurable via `namespace_path` variable)
 - Enables Vault Azure secrets engine for credential management
 - All backend, role, and policy attributes are configurable via variables for maximum flexibility
 - Securely stores Azure credentials using sensitive Terraform variables
@@ -78,9 +80,11 @@ To read Azure secrets from Vault, first set the required environment variables:
 
 ```bash
 export VAULT_ADDR=""
-export VAULT_NAMESPACE=""
+export VAULT_NAMESPACE="azureengine-demo"  # Or your custom namespace_path value
 export VAULT_TOKEN=""
 ```
+
+**Note**: All resources created by this module are provisioned within the namespace specified by the `namespace_path` variable (default: `azureengine-demo`). Make sure to set the `VAULT_NAMESPACE` environment variable to match your configured namespace path.
 
 Then, use the following Vault CLI command to retrieve dynamic Azure credentials:
 
@@ -88,12 +92,12 @@ Then, use the following Vault CLI command to retrieve dynamic Azure credentials:
 vault read azure/creds/<role_name>
 ```
 
-Replace `<role_name>` with the name of the Azure role you have configured (e.g., `hcpvault-demo-existingobjectid`).
+Replace `<role_name>` with the name of the Azure role you have configured (e.g., `HCPVault-Demo-Dynamic`).
 
 Example:
 
 ```bash
-vault read azure/creds/hcpvault-demo-existingobjectid
+vault read azure/creds/HCPVault-Demo-Dynamic
 ```
 
 This command will return a set of dynamic Azure credentials with the following information:
@@ -124,7 +128,7 @@ See the [RUN\_DEMO.md](./docs/RUN\_DEMO.md) file for detailed instructions on ru
 ### Automated Static Credential Rotation
 
 For production environments requiring automated static credential management, this module includes a cron-compatible rotation script
-([rotate\_static\_credentials.sh](../rotate\_static\_credentials.sh)) that:
+([rotate\_static\_credentials.sh](../scripts/rotate\_static\_credentials.sh)) that:
 
 - Authenticates using AppRole credentials
 - Reads static credentials from Vault (triggering rotation based on rotation\_period)
@@ -372,6 +376,14 @@ Type: `bool`
 
 Default: `true`
 
+### <a name="input_namespace_path"></a> [namespace\_path](#input\_namespace\_path)
+
+Description: (Optional) Path for the Vault namespace where all resources will be created.
+
+Type: `string`
+
+Default: `"azureengine-demo"`
+
 ## Resources
 
 The following resources are used by this module:
@@ -382,6 +394,7 @@ The following resources are used by this module:
 - [vault_azure_secret_backend.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend) (resource)
 - [vault_azure_secret_backend_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_role) (resource)
 - [vault_azure_secret_backend_static_role.static_role](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_static_role) (resource)
+- [vault_namespace.azureengine_demo](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/namespace) (resource)
 - [vault_policy.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
 - [vault_policy.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
 
@@ -413,5 +426,27 @@ Description: Name of the AppRole for the static credentials demo script.
 
 Description: AppRole Role ID for the static credentials demo script. Use this with Secret ID to authenticate.
 
+### <a name="output_namespace_path"></a> [namespace\_path](#output\_namespace\_path)
+
+Description: Path of the Vault namespace where all resources are created.
+
 <!-- markdownlint-enable -->
+## Additional Documentation
+
+- [Running Demo Scripts](./docs/RUN\_DEMO.md) - Complete guide for running the Azure credential demonstration scripts
+- [Static Credential Rotation](./docs/ROTATION\_SCRIPT.md) - Production deployment guide for automated credential rotation
+- [Security Policy](./docs/SECURITY.md) - Security guidelines and vulnerability reporting
+- [Code of Conduct](./docs/CODE\_OF\_CONDUCT.md) - Community guidelines and expectations
+- [Pull Request Template](./docs/PULL\_REQUEST\_TEMPLATE.md) - Template for contributing changes
+
+## Related Resources
+
+- [HashiCorp Vault Azure Secrets Engine Documentation](https://developer.hashicorp.com/vault/docs/secrets/azure)
+- [HashiCorp Vault AppRole Auth Method](https://developer.hashicorp.com/vault/docs/auth/approle)
+- [Azure Active Directory Service Principals](https://learn.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals)
+- [HCP Terraform Dynamic Provider Credentials](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/dynamic-provider-credentials)
+
+## Support
+
+For issues, questions, or contributions, please refer to the repository's issue tracker and pull request process.
 <!-- END_TF_DOCS -->
