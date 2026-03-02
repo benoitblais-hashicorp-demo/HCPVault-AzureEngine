@@ -431,6 +431,7 @@ Description: AppRole Role ID for the static credentials demo script. Use this wi
 Description: Path of the Vault namespace where all resources are created.
 
 <!-- markdownlint-enable -->
+<!-- markdownlint-disable MD041 -->
 ## Additional Documentation
 
 - [Running Demo Scripts](./docs/RUN\_DEMO.md) - Complete guide for running the Azure credential demonstration scripts
