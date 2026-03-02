@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD041 -->
 ## Additional Documentation
 
 - [Running Demo Scripts](./docs/RUN_DEMO.md) - Complete guide for running the Azure credential demonstration scripts
