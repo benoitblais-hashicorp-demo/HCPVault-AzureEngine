@@ -388,15 +388,15 @@ Default: `"azureengine-demo"`
 
 The following resources are used by this module:
 
-- [vault_approle_auth_backend_role.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/approle_auth_backend_role) (resource)
-- [vault_approle_auth_backend_role.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/approle_auth_backend_role) (resource)
-- [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/auth_backend) (resource)
-- [vault_azure_secret_backend.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend) (resource)
-- [vault_azure_secret_backend_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_role) (resource)
-- [vault_azure_secret_backend_static_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/azure_secret_backend_static_role) (resource)
-- [vault_namespace.azureengine_demo](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/namespace) (resource)
-- [vault_policy.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
-- [vault_policy.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.6.0/docs/resources/policy) (resource)
+- [vault_approle_auth_backend_role.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/approle_auth_backend_role) (resource)
+- [vault_approle_auth_backend_role.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/approle_auth_backend_role) (resource)
+- [vault_auth_backend.approle](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/auth_backend) (resource)
+- [vault_azure_secret_backend.this](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/azure_secret_backend) (resource)
+- [vault_azure_secret_backend_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/azure_secret_backend_role) (resource)
+- [vault_azure_secret_backend_static_role.this](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/azure_secret_backend_static_role) (resource)
+- [vault_namespace.azureengine_demo](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/namespace) (resource)
+- [vault_policy.demo_script_dynamic](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/policy) (resource)
+- [vault_policy.demo_script_static](https://registry.terraform.io/providers/hashicorp/vault/5.7.0/docs/resources/policy) (resource)
 
 ## Outputs
 
