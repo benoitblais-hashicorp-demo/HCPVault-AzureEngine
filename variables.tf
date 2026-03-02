@@ -178,7 +178,7 @@ variable "demo_script_dynamic_policy_name" {
   type        = string
   description = "(Optional) Name of the policy for the dynamic credentials demo script."
   default     = "azure-demo-script-dynamic-policy"
-  nullable = false
+  nullable    = false
 }
 
 variable "demo_script_secret_id_ttl" {
